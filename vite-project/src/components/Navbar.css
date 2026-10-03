@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Bebas+Neue&display=swap');
+
+.navbar {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  top: 0;
+  height: 72px;
+  padding: 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  border-bottom: 1px solid rgba(30, 144, 255, 0.25);
+}
+
+/* ── Logo ─────────────────────────────────── */
+.nav-logo {
+  text-decoration: none;
+  font-family: 'Bangers', cursive;
+  font-size: 22px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1;
+}
+
+/* "SPIDER-MAN" in red */
+.nav-logo span {
+  color: #C0001A;
+}
+
+/* ── Links ────────────────────────────────── */
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+
+.nav-links li {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.70);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+  pointer-events: all;
+}
+
+/* underline: electric blue on hover */
+.nav-links li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0%;
+  height: 1.5px;
+  background: #1E90FF;
+  transition: width 0.35s ease;
+}
+
+.nav-links li:hover {
+  color: #fff;
+}
+
+.nav-links li:hover::after {
+  width: 100%;
+}
+
+.creator-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+}
+
+.creator-name {
+  color: #fff;
+  letter-spacing: 0.2em;
+}
+
+.creator-links a {
+  color: #1E90FF;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.creator-links a:hover,
+.creator-links a:focus-visible {
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    padding: 0 24px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .creator-links {
+    gap: 10px;
+  }
+
+  .creator-name {
+    display: none;
+  }
+}

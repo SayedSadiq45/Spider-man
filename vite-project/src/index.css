@@ -1,0 +1,19 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  background: #030508;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background: #030508;
+}
+
+button,
+a {
+  font: inherit;
+}

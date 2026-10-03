@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spider-Man — Unmask the Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; background:#04060c; overflow:hidden; }
+  .hero { position:relative; width:100vw; height:100vh; overflow:hidden; cursor:none; }
+  .hero::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:4px; z-index:20;
+    background:linear-gradient(90deg, transparent, #E62429, #2a52be, #E62429, transparent);
+  }
+  .hero-canvas { position:absolute; inset:0; width:100%; height:100%; display:block; z-index:0; }
+  .content { position:absolute; inset:0; z-index:10; pointer-events:none; }
+
+  /* decorative spider webs */
+  .web { position:absolute; width:280px; height:280px; z-index:6; opacity:0.16; pointer-events:none; }
+  .web.tl { top:-14px; left:-14px; }
+  .web.br { bottom:-14px; right:-14px; transform:rotate(180deg); }
+  .web line, .web polyline { stroke:#dfe6ff; stroke-width:1.1; fill:none; }
+
+  .logo {
+    position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:15;
+    text-align:center; pointer-events:none;
+  }
+  .logo img {
+    width:340px; max-width:70vw; height:auto; display:block;
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6)) drop-shadow(0 0 22px rgba(230,36,41,0.35));
+  }
+
+  .left {
+    position:absolute; bottom:72px; left:72px; width:380px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:22px;
+  }
+  .right {
+    position:absolute; top:56%; right:72px; transform:translateY(-50%);
+    width:400px; text-align:right; display:flex; flex-direction:column; gap:22px; align-items:flex-end;
+  }
+  .eyebrow {
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; letter-spacing:0.4em;
+    text-transform:uppercase; color:#ff2b3d; padding-left:1.6rem; position:relative;
+  }
+  .eyebrow::before {
+    content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
+    width:1.1rem; height:1.5px; background:#ff2b3d;
+  }
+  .right .eyebrow { color:#7fa6ff; padding:0 1.6rem 0 0; }
+  .right .eyebrow::before { left:auto; right:0; background:#7fa6ff; }
+
+  .title {
+    font-family:'Anton', sans-serif; font-size:78px; line-height:0.9; color:#fff;
+    text-transform:uppercase; letter-spacing:0.04em;
+    display:flex; flex-direction:column; gap:14px;
+    text-shadow:3px 3px 0 #b0161b, 0 0 14px rgba(230,36,41,0.5), 0 0 36px rgba(230,36,41,0.28);
+  }
+  .title span { display:block; }
+  /* second line accents the name, offset + tinted for a cool stacked look */
+  .left .title span:nth-child(2){
+    color:#ff2b3d; margin-left:0.28em;
+    text-shadow:3px 3px 0 #7a0f13, 0 0 18px rgba(230,36,41,0.6), 0 0 40px rgba(230,36,41,0.3);
+  }
+  .right .title {
+    font-size:72px; color:#fff; align-items:flex-end;
+    text-shadow:3px 3px 0 #1a2f6b, 0 0 16px rgba(90,130,255,0.5), 0 0 40px rgba(90,130,255,0.3);
+  }
+  .right .title span:nth-child(2){
+    color:#7fa6ff; margin-right:0.28em;
+    text-shadow:3px 3px 0 #12235a, 0 0 18px rgba(90,130,255,0.6), 0 0 40px rgba(90,130,255,0.35);
+  }
+  .desc {
+    font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:500; font-size:20px;
+    line-height:1.7; letter-spacing:0.01em; color:rgba(255,255,255,0.9); max-width:38ch;
+  }
+  .btn {
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; letter-spacing:0.28em; text-transform:uppercase;
+    padding:15px 32px; margin-top:4px; background:transparent; color:#fff; border:2px solid #E62429;
+    cursor:pointer; align-self:flex-start; position:relative; overflow:hidden; isolation:isolate;
+    clip-path:polygon(9px 0%,100% 0%,calc(100% - 9px) 100%,0% 100%); pointer-events:all;
+    transition:border-color .3s, color .3s;
+  }
+  .btn::after {
+    content:''; position:absolute; inset:0; background:#E62429;
+    transform:translateX(-105%) skewX(-8deg); transition:transform .38s cubic-bezier(.4,0,.2,1); z-index:-1;
+  }
+  .btn:hover { border-color:#ff4b57; color:#fff; }
+  .btn:hover::after { transform:translateX(0) skewX(-8deg); }
+
+  .hint {
+    position:absolute; left:50%; bottom:24px; transform:translateX(-50%); z-index:16;
+    font-family:'Oswald',sans-serif; font-weight:500; letter-spacing:0.28em; font-size:13px; color:#fff;
+    background:rgba(0,0,0,0.45); padding:9px 20px; border-radius:999px; pointer-events:none;
+    transition:opacity .5s;
+  }
+
+  /* lightning */
+  .lightning {
+    position:absolute; inset:0; z-index:8; pointer-events:none; opacity:0;
+    background:radial-gradient(120% 80% at 50% 0%, rgba(226,236,255,0.95), rgba(190,210,255,0.55) 45%, rgba(140,170,255,0) 75%);
+    mix-blend-mode:screen;
+  }
+  .bolt {
+    position:absolute; top:-2%; width:150px; height:62vh; z-index:9; opacity:0; pointer-events:none;
+    filter:drop-shadow(0 0 6px #cfe0ff) drop-shadow(0 0 18px rgba(150,190,255,0.9));
+  }
+  .bolt polyline { fill:none; stroke:#eaf2ff; stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round; }
+
+  @media (max-width:680px){
+    .logo img{width:210px;}
+    .web{width:170px;height:170px;}
+    .left{left:22px; bottom:34px; width:62%;} .right{right:22px; width:58%;}
+    .title{font-size:44px;} .right .title{font-size:40px;} .desc{font-size:15px;}
+    .btn{font-size:14px; padding:11px 18px;}
+  }
+</style>
+</head>
+<body>
+<div class="hero" id="hero">
+  <canvas class="hero-canvas" id="cv"></canvas>
+
+  <!-- storm -->
+  <div class="lightning" id="flash"></div>
+  <svg class="bolt" id="bolt" viewBox="0 0 100 300" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="52,0 44,58 60,66 38,132 58,142 30,208 52,220 24,300"/>
+  </svg>
+
+  <!-- spider webs -->
+  <svg class="web tl" viewBox="0 0 300 300" aria-hidden="true">
+    <g>
+      <line x1="0" y1="0" x2="300" y2="0"/>
+      <line x1="0" y1="0" x2="285.3" y2="92.7"/>
+      <line x1="0" y1="0" x2="242.7" y2="176.4"/>
+      <line x1="0" y1="0" x2="176.4" y2="242.7"/>
+      <line x1="0" y1="0" x2="92.7" y2="285.3"/>
+      <line x1="0" y1="0" x2="0" y2="300"/>
+      <polyline points="60,0 57.06,18.54 48.54,35.28 35.28,48.54 18.54,57.06 0,60"/>
+      <polyline points="120,0 114.12,37.08 97.08,70.56 70.56,97.08 37.08,114.12 0,120"/>
+      <polyline points="180,0 171.18,55.62 145.62,105.84 105.84,145.62 55.62,171.18 0,180"/>
+      <polyline points="240,0 228.24,74.16 194.16,141.12 141.12,194.16 74.16,228.24 0,240"/>
+      <polyline points="300,0 285.3,92.7 242.7,176.4 176.4,242.7 92.7,285.3 0,300"/>
+    </g>
+  </svg>
+  <svg class="web br" viewBox="0 0 300 300" aria-hidden="true">
+    <g>
+      <line x1="0" y1="0" x2="300" y2="0"/>
+      <line x1="0" y1="0" x2="285.3" y2="92.7"/>
+      <line x1="0" y1="0" x2="242.7" y2="176.4"/>
+      <line x1="0" y1="0" x2="176.4" y2="242.7"/>
+      <line x1="0" y1="0" x2="92.7" y2="285.3"/>
+      <line x1="0" y1="0" x2="0" y2="300"/>
+      <polyline points="60,0 57.06,18.54 48.54,35.28 35.28,48.54 18.54,57.06 0,60"/>
+      <polyline points="120,0 114.12,37.08 97.08,70.56 70.56,97.08 37.08,114.12 0,120"/>
+      <polyline points="180,0 171.18,55.62 145.62,105.84 105.84,145.62 55.62,171.18 0,180"/>
+      <polyline points="240,0 228.24,74.16 194.16,141.12 141.12,194.16 74.16,228.24 0,240"/>
+      <polyline points="300,0 285.3,92.7 242.7,176.4 176.4,242.7 92.7,285.3 0,300"/>
+    </g>
+  </svg>
+
+  <div class="logo">
+    <img src="djh9f0b-62bc34e1-57c9-456c-a0c6-92636ba5af8b.png" alt="Marvel Spider-Man — Brand New Day">
+  </div>
+
+  <div class="content">
+    <div class="left">
+      <span class="eyebrow">Queens &middot; New York City</span>
+      <h1 class="title"><span>PETER</span><span>PARKER</span></h1>
+      <p class="desc">A kid from Queens carrying the weight of the whole city. Bitten by a radioactive spider, hunted by the headlines  and still swinging out into the night, every single time.</p>
+      <button class="btn">Swing In</button>
+    </div>
+    <div class="right">
+      <span class="eyebrow">With Great Power&hellip;</span>
+      <h1 class="title"><span>SPIDER-</span><span>MAN</span></h1>
+      <p class="desc">Web-slinger, wall-crawler, the mask that never backs down. Great power comes with great responsibility  your friendly neighborhood hero.</p>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">&#9656; MOVE ACROSS TO UNMASK THE HERO &#9666;</div>
+</div>
+
+<script>
+(function(){
+  const hero=document.getElementById('hero');
+  const canvas=document.getElementById('cv');
+  const ctx=canvas.getContext('2d');
+  const hint=document.getElementById('hint');
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+
+  const TRAIL_LENGTH=80;
+  let HEAD_RADIUS=160;
+  const OVERLAY='rgba(0,0,0,0.15)';
+
+  const mouse={x:-9999,y:-9999};
+  const smooth={x:-9999,y:-9999};
+  let trail=[];
+
+  // bottom = the man behind the mask; top = the hero revealed
+  const bottom=new Image();
+  const top=new Image();
+  top.src='479496-2740x1541-desktop-hd-spider-man-tom-holland-background-image.jpg';
+  bottom.src='marvels-spider-man-3840x2160-11990.jpeg';
+
+  const off=document.createElement('canvas');
+  const offc=off.getContext('2d');
+
+  function cover(img,cw,ch){
+    const ir=img.width/img.height, cr=cw/ch;
+    let w,h,x,y;
+    if(ir>cr){ h=ch; w=ch*ir; x=(cw-w)/2; y=0; }
+    else { w=cw; h=cw/ir; x=0; y=(ch-h)/2; }
+    return [x,y,w,h];
+  }
+
+  function resize(){
+    const w=hero.offsetWidth,h=hero.offsetHeight;
+    canvas.width=w*DPR; canvas.height=h*DPR;
+    off.width=w*DPR; off.height=h*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    offc.setTransform(DPR,0,0,DPR,0,0);
+    HEAD_RADIUS=Math.max(130,Math.min(w,h)*0.27);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  hero.addEventListener('mousemove',function(e){
+    const r=hero.getBoundingClientRect();
+    mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
+    hint.style.opacity=0;
+  });
+  hero.addEventListener('touchmove',function(e){
+    const r=hero.getBoundingClientRect(); const t=e.touches[0];
+    mouse.x=t.clientX-r.left; mouse.y=t.clientY-r.top;
+    hint.style.opacity=0;
+  },{passive:true});
+
+  function draw(){
+    const w=hero.offsetWidth,h=hero.offsetHeight;
+    smooth.x+=(mouse.x-smooth.x)*0.13;
+    smooth.y+=(mouse.y-smooth.y)*0.13;
+
+    trail.unshift({x:smooth.x,y:smooth.y});
+    if(trail.length>TRAIL_LENGTH) trail.length=TRAIL_LENGTH;
+
+    ctx.clearRect(0,0,w,h);
+    const cb=cover(bottom,w,h);
+    const BS=1.1; // scale the bottom image down ~5%, kept centered
+    const bw=cb[2]*BS, bh=cb[3]*BS;
+    ctx.drawImage(bottom, cb[0]+(cb[2]-bw)/2, cb[1]+(cb[3]-bh)/2, bw, bh);
+    ctx.fillStyle=OVERLAY;
+    ctx.fillRect(0,0,w,h);
+
+    offc.clearRect(0,0,w,h);
+    offc.globalCompositeOperation='source-over';
+    for(let i=0;i<trail.length;i++){
+      const t=1-i/trail.length;
+      const r=HEAD_RADIUS*(0.25+0.75*t);
+      const alpha=Math.pow(t,1.5);
+      offc.beginPath();
+      offc.arc(trail[i].x,trail[i].y,r,0,Math.PI*2);
+      offc.fillStyle='rgba(0,0,0,'+alpha+')';
+      offc.fill();
+    }
+    offc.globalCompositeOperation='source-in';
+    const ct=cover(top,w,h);
+    const TOP_SHIFT=h*0.0001; // nudge the revealed hero down to line up with the figure below
+    offc.drawImage(top,ct[0],ct[1]+TOP_SHIFT,ct[2],ct[3]);
+    offc.globalCompositeOperation='source-atop';
+    offc.fillStyle=OVERLAY;
+    offc.fillRect(0,0,w,h);
+
+    ctx.drawImage(off,0,0,w,h);
+
+    if(trail.length){
+      const head=trail[0];
+      const glow=ctx.createRadialGradient(head.x,head.y,0,head.x,head.y,HEAD_RADIUS*1.45);
+      glow.addColorStop(0,'rgba(255,235,235,0.30)');
+      glow.addColorStop(0.45,'rgba(230,36,41,0.16)');
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(head.x,head.y,HEAD_RADIUS*1.45,0,Math.PI*2);
+      ctx.fillStyle=glow; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  let loaded=0;
+  const onLoad=function(){ if(++loaded===2) draw(); };
+  bottom.onload=onLoad; top.onload=onLoad;
+
+  /* ---------- storm: lightning flash + synthesized thunder ---------- */
+  const flash=document.getElementById('flash');
+  const bolt=document.getElementById('bolt');
+
+  // AudioContext unlocks only after a user gesture (browser autoplay policy)
+  let audio=null;
+  function unlock(){
+    if(audio) return;
+    try{ audio=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audio=null; }
+  }
+  window.addEventListener('pointerdown',unlock,{once:true});
+  window.addEventListener('mousemove',unlock,{once:true});
+  window.addEventListener('keydown',unlock,{once:true});
+
+  function thunder(power){
+    if(!audio) return;
+    if(audio.state==='suspended') audio.resume();
+    const now=audio.currentTime;
+    const dur=1.6+power*1.2;
+    // noise crackle -> heavy low rumble
+    const buf=audio.createBuffer(1, Math.floor(audio.sampleRate*dur), audio.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){ d[i]=(Math.random()*2-1); }
+    const src=audio.createBufferSource(); src.buffer=buf;
+    const lp=audio.createBiquadFilter(); lp.type='lowpass';
+    lp.frequency.setValueAtTime(1900,now);
+    lp.frequency.exponentialRampToValueAtTime(90,now+dur);
+    lp.Q.value=0.9;
+    // sub-bass boom for extra weight
+    const osc=audio.createOscillator(); osc.type='sine';
+    osc.frequency.setValueAtTime(62,now);
+    osc.frequency.exponentialRampToValueAtTime(28,now+dur*0.8);
+    const og=audio.createGain();
+    og.gain.setValueAtTime(0.0001,now);
+    og.gain.exponentialRampToValueAtTime(0.9*power,now+0.06);
+    og.gain.exponentialRampToValueAtTime(0.0001,now+dur*0.9);
+    // heavy overall drive (>1 clips a touch = punchy crack)
+    const g=audio.createGain();
+    g.gain.setValueAtTime(0.0001,now);
+    g.gain.exponentialRampToValueAtTime(2.2*power,now+0.03);
+    g.gain.exponentialRampToValueAtTime(0.7*power,now+0.22);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+    src.connect(lp); lp.connect(g);
+    osc.connect(og); og.connect(g);
+    g.connect(audio.destination);
+    src.start(now); src.stop(now+dur);
+    osc.start(now); osc.stop(now+dur);
+  }
+
+  function strike(){
+    const power=0.85+Math.random()*0.35;
+    // reposition bolt each strike
+    bolt.style.left=(12+Math.random()*66)+'%';
+    bolt.style.transform='scaleX('+(Math.random()<0.5?-1:1)+') rotate('+(Math.random()*10-5)+'deg)';
+    // flicker pattern (real lightning double/triple flashes)
+    const flicker=[
+      {opacity:0},{opacity:1.0*power},{opacity:0.2},{opacity:0.9*power},
+      {opacity:0.08},{opacity:0.6*power},{opacity:0}
+    ];
+    flash.animate(flicker,{duration:420,easing:'ease-out'});
+    bolt.animate(flicker,{duration:300,easing:'ease-out'});
+    // heavy thunder cracks almost immediately with the flash
+    setTimeout(function(){ thunder(power); }, 40+Math.random()*80);
+  }
+
+  function nextStrike(){
+    // heavy thundering ~ every 0.5s
+    const wait=450+Math.random()*150;
+    setTimeout(function(){ strike(); nextStrike(); }, wait);
+  }
+  setTimeout(function(){ strike(); nextStrike(); }, 500); // first bolt after ~0.5s
+})();
+</script>
+</body>
+</html>
